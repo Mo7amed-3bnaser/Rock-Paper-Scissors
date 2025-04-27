@@ -5,11 +5,17 @@ result = document.querySelector(".result"),
 optionImages = document.querySelectorAll(".option_image"),
 resetBtn = document.querySelector(".reset-btn"),
 userScoreElement = document.getElementById("user-score"),
-cpuScoreElement = document.getElementById("cpu-score");
+cpuScoreElement = document.getElementById("cpu-score"),
+finalResultScreen = document.querySelector(".final-result-screen"),
+finalResultMessage = document.querySelector(".final-result-message"),
+finalUserScore = document.querySelector(".final-user-score"),
+finalCpuScore = document.querySelector(".final-cpu-score"),
+playAgainBtn = document.querySelector(".play-again-btn");
 
 // نظام النقاط
 let userScore = 0;
 let cpuScore = 0;
+const SCORE_LIMIT = 5; // الحد الأقصى للنقاط
 
 // تأثيرات صوتية
 const playSound = (outcome) => {
@@ -43,8 +49,29 @@ const animateResult = (outcome) => {
     }
 };
 
+// إظهار شاشة النتيجة النهائية
+const showFinalResult = (winner) => {
+    finalUserScore.textContent = userScore;
+    finalCpuScore.textContent = cpuScore;
+    
+    if (winner === "User") {
+        finalResultMessage.textContent = "لقد فزت! 🎉";
+        finalResultMessage.className = "final-result-message win";
+        playSound("User");
+    } else {
+        finalResultMessage.textContent = "لقد خسرت! 😢";
+        finalResultMessage.className = "final-result-message lose";
+        playSound("Cpu");
+    }
+    
+    // إظهار الشاشة بعد تأخير قصير
+    setTimeout(() => {
+        finalResultScreen.classList.add("show");
+    }, 1000);
+};
+
 // إعادة ضبط اللعبة
-resetBtn.addEventListener("click", () => {
+const resetGame = () => {
     userScore = 0;
     cpuScore = 0;
     userScoreElement.textContent = "0";
@@ -57,10 +84,20 @@ resetBtn.addEventListener("click", () => {
     optionImages.forEach(image => {
         image.classList.remove("active");
     });
-});
+    
+    finalResultScreen.classList.remove("show");
+};
 
+// أزرار إعادة اللعبة
+resetBtn.addEventListener("click", resetGame);
+playAgainBtn.addEventListener("click", resetGame);
+
+// منطق اللعبة
 optionImages.forEach((image, index) => {
     image.addEventListener("click", (e) => {
+        // تجاهل النقرات إذا كانت اللعبة منتهية
+        if (userScore >= SCORE_LIMIT || cpuScore >= SCORE_LIMIT) return;
+        
         image.classList.add("active");
 
         userResult.src = cpuResult.src = "images/rock.png";
@@ -121,6 +158,13 @@ optionImages.forEach((image, index) => {
                 userResult.style.transform = "rotate(90deg) scale(1)";
                 cpuResult.style.transform = "rotate(-90deg) rotateY(180deg) scale(1)";
             }, 300);
+            
+            // التحقق من انتهاء اللعبة
+            if (userScore >= SCORE_LIMIT) {
+                showFinalResult("User");
+            } else if (cpuScore >= SCORE_LIMIT) {
+                showFinalResult("Cpu");
+            }
             
         }, 500);
     });
